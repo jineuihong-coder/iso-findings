@@ -2,8 +2,14 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 from io import BytesIO
-from konlpy.tag import Okt
-import matplotlib.pyplot as plt
+
+# ----------------- konlpy(Okt) optional import -----------------
+try:
+    from konlpy.tag import Okt
+    okt_available = True
+    okt = Okt()
+except ModuleNotFoundError:
+    okt_available = False
 
 # ----------------- 페이지 설정 -----------------
 st.set_page_config(page_title="인정평가 부적합 분석(ISO/IEC 17021-1 기반)", layout="wide")
@@ -148,8 +154,9 @@ def add_req_text(findings, standards):
     return f
 
 def extract_nouns(text_series):
-    """한글 텍스트에서 명사만 추출"""
-    okt = Okt()
+    """한글 텍스트에서 명사만 추출 (konlpy 없으면 skip)"""
+    if not okt_available:
+        return pd.Series(dtype=str)
     nouns = []
     for txt in text_series.dropna():
         nouns.extend(okt.nouns(txt))
@@ -240,14 +247,14 @@ if not df.empty:
         fig2.update_xaxes(tickangle=60, tickmode='array', tickvals=c2["세부조항"], ticktext=c2["세부조항"])
         st.plotly_chart(fig2, use_container_width=True)
 
-        # PNG 다운로드 기능
-        buf_img = BytesIO()
-        fig2.write_image(buf_img, format="png")
+        # --- 세부조항 TOP5를 엑셀로 다운로드 ---
+        buf_excel = BytesIO()
+        c2.to_excel(buf_excel, index=False)
         st.download_button(
-            label="📷 세부조항별 그래프 다운로드 (PNG)",
-            data=buf_img.getvalue(),
-            file_name="세부조항별_발생건수.png",
-            mime="image/png"
+            label="📥 세부조항별 발생 건수 엑셀 다운로드",
+            data=buf_excel.getvalue(),
+            file_name="세부조항별_발생건수.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
         st.markdown("**🔝 TOP 5 세부조항**")
@@ -259,9 +266,14 @@ if not df.empty:
         st.plotly_chart(px.pie(df, names="구분", title="권고/부적합 비율"), use_container_width=True)
 
     # --- 키워드 명사 빈도 분석 ---
-    if "내용" in df:
+    if okt_available and "내용" in df:
         st.markdown("#### 4️⃣ 자주 등장하는 명사 TOP10")
         nouns = extract_nouns(df["내용"])
-        freq = nouns.value_counts().head(10)
-        st.bar_chart(freq)
-        st.caption("※ 한국어 문장에서 명사만 추출하여 단순 빈도 분석")
+        if not nouns.empty:
+            freq = nouns.value_counts().head(10)
+            st.bar_chart(freq)
+            st.caption("※ 한국어 문장에서 명사만 추출하여 단순 빈도 분석")
+        else:
+            st.info("konlpy 모듈이 없어 명사 분석을 건너뜁니다.")
+    elif not okt_available:
+        st.info("⚠️ konlpy 모듈이 없어 명사 빈도 분석 기능은 사용할 수 없습니다.")
