@@ -9,7 +9,7 @@ st.set_page_config(page_title="인정평가 부적합 분석(ISO/IEC 17021-1 기
 st.markdown(
     """
     <div style="display:flex; align-items:center;">
-        <img src="https://img.icons8.com/color/96/000000/book.png" width="60" style="margin-right:15px"/>
+        <img src="https://img.icons8.com/color/96/000000/book.png" width="60" style="margin-right:13px"/>
         <h1 style="margin:0;"> 부적합 작성 가이드</h1>
     </div>
     """,
@@ -21,10 +21,11 @@ tab1, tab2, tab3 = st.tabs(["📖 부적합 정의", "✍️ 부적합 작성법
 
 with tab1:
     st.markdown("""
-### 부적합 (Nonconformity)이란
+### 부적합 (Nonconformity)이란?
 **ISO 정의**  
 > *non-fulfillment of a requirement*  
 즉, 어떤 요구사항(requirement) 을 충족하지 못한 상태를 의미합니다.  
+
 ISO 9001 심사 실행 지침 등 ISO Auditing Practices Group 문서에서도 이 정의를 사용하며, 부적합을 문서화할 때는 **“요구사항 위반 → 객관적 증거 → 원인 → 시정 조치(재발 방지 계획)”** 체계가 필요합니다.  
 
 """)
@@ -74,15 +75,15 @@ ISO 19011:2018 제6.4.10항에서는 “recommendations (권고사항)” 또는
 
 (2) ***실무적/판단 기준으로의 구별 요소*** 
 
-아래 요소들을 기준으로 “이건 부적합인가, 개선 기회인가”를 구별하는 것이 일반적입니다.
+아래 요소들을 기준으로 “이건 부적합인가, 개선 기회인가(평가사는 권고만 해당)”를 구별하는 것이 일반적입니다.
 
-| 구별 기준 | 부적합 (Nonconformity) | 권고사항 / 개선기회 (OFI, Recommendation) |
+| 구별 기준 | 부적합 (Nonconformity) | "권고사항" / 개선기회 (OFI, Recommendation) |
 | -------------------- | ---------------------------------- | --------------------------------------- |
 | **요구사항 위반 여부** | 기준 또는 요구사항을 명백히 위반한 경우 | 요구사항을 위반하지 않았지만 더 나은 방법이 있을 경우 |
 | **의무 조치 여부** | 반드시 시정 조치가 요구됨 | 조치가 의무는 아니며 조직의 선택 사항 |
 | **인증 또는 적합성 영향 가능성** | 인증 유지, 시스템 신뢰성 등에 영향을 줄 수 있음 | 일반적으로 인증 불이행으로 직접 연결되지는 않음 |
 | **심각성 / 위험도** | 시스템 취약, 반복 발생, 안전/품질 영향 등 | 주로 효율성, 최적화, 비용 절감 등 개선 여지 |
-| **명령적 표현 사용 여부** | “~하지 않음”, “~이 없음”, “~미준수” 등 부정적 표현 | “~필요함”, “권장됨”, “검토할 필요 있음” 등 제안형 표현 |
+| **명령적 표현 사용 여부** | “~하지 않음”, “~이 없음”, “~미준수/미흡” 등 부정적 표현 | “~필요함”, “권고함”, “검토할 필요 있음” 등 제안형 표현 |
 """)
 
 st.markdown("---")
@@ -219,6 +220,7 @@ if not df.empty:
     if "구분" in df:
         st.markdown("#### 3️⃣ 권고 / 부적합 비율")
         st.plotly_chart(px.pie(df, names="구분", title="권고/부적합 비율"), use_container_width=True)
+
 
 
 
