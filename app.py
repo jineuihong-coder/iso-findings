@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-import io
 
 # ----------------- 페이지 설정 -----------------
 st.set_page_config(page_title="인정평가 부적합 분석(ISO/IEC 17021-1 기반)", layout="wide")
@@ -68,7 +67,14 @@ ISO 19011:2018 제6.4.10항에서는 “recommendations (권고사항)” 또는
 
 아래 요소들을 기준으로 “이건 부적합인가, 개선 기회인가”를 구별하는 것이 일반적입니다.
 
-| 구별 기준 | 부적합 (Nonconformity) | 권고사항 / 개선기회 (OFI, Recommendation) | | -------------------- | ---------------------------------- | --------------------------------------- | | **요구사항 위반 여부** | 기준 또는 요구사항을 명백히 위반한 경우 | 요구사항을 위반하지 않았지만 더 나은 방법이 있을 경우 | | **의무 조치 여부** | 반드시 시정 조치가 요구됨 | 조치가 의무는 아니며 조직의 선택 사항 | | **인증 또는 적합성 영향 가능성** | 인증 유지, 시스템 신뢰성 등에 영향을 줄 수 있음 | 일반적으로 인증 불이행으로 직접 연결되지는 않음 | | **심각성 / 위험도** | 시스템 취약, 반복 발생, 안전/품질 영향 등 | 주로 효율성, 최적화, 비용 절감 등 개선 여지 | | **명령적 표현 사용 여부** | “~하지 않음”, “~이 없음”, “~미준수” 등 부정적 표현 | “~필요함”, “권장됨”, “검토할 필요 있음” 등 제안형 표현 | """))
+| 구별 기준 | 부적합 (Nonconformity) | 권고사항 / 개선기회 (OFI, Recommendation) |
+| -------------------- | ---------------------------------- | --------------------------------------- |
+| **요구사항 위반 여부** | 기준 또는 요구사항을 명백히 위반한 경우 | 요구사항을 위반하지 않았지만 더 나은 방법이 있을 경우 |
+| **의무 조치 여부** | 반드시 시정 조치가 요구됨 | 조치가 의무는 아니며 조직의 선택 사항 |
+| **인증 또는 적합성 영향 가능성** | 인증 유지, 시스템 신뢰성 등에 영향을 줄 수 있음 | 일반적으로 인증 불이행으로 직접 연결되지는 않음 |
+| **심각성 / 위험도** | 시스템 취약, 반복 발생, 안전/품질 영향 등 | 주로 효율성, 최적화, 비용 절감 등 개선 여지 |
+| **명령적 표현 사용 여부** | “~하지 않음”, “~이 없음”, “~미준수” 등 부정적 표현 | “~필요함”, “권장됨”, “검토할 필요 있음” 등 제안형 표현 |
+""")
 
 st.markdown("---")
 
@@ -106,18 +112,27 @@ def drop_noise_columns(df):
     return df.drop(columns=list(noise)+unnamed, errors="ignore")
 
 def add_req_text(findings, standards):
-    if standards is None: return findings
+    if standards is None:
+        return findings
     std_cols = standards.columns
     clause_col = next((c for c in std_cols if c in ["조항","Clause","항목"]), None)
     req_col = next((c for c in std_cols if c in ["요구사항","Requirement","내용"]), None)
-    if not clause_col or not req_col: return findings
+    if not clause_col or not req_col:
+        return findings
     std = standards.copy()
     std[clause_col] = std[clause_col].astype(str)
     f = findings.copy()
+
+    # IndexError 방지 (값이 없을 때 빈 문자열 반환)
     def match_req(row):
-        sub = str(row.get("세부조항")); main = str(row.get("조항"))
-        if sub in std[clause_col].values: return std.loc[std[clause_col]==sub, req_col].values[0]
-        if main in std[clause_col].values: return std.loc[std[clause_col]==main, req_col].values[0]
+        sub = str(row.get("세부조항"))
+        main = str(row.get("조항"))
+        if sub in std[clause_col].values:
+            vals = std.loc[std[clause_col]==sub, req_col].values
+            return vals[0] if len(vals) > 0 else ""
+        if main in std[clause_col].values:
+            vals = std.loc[std[clause_col]==main, req_col].values
+            return vals[0] if len(vals) > 0 else ""
         return ""
     f["요구사항"] = f.apply(match_req, axis=1)
     return f
@@ -126,8 +141,10 @@ def add_req_text(findings, standards):
 uploaded = st.file_uploader("엑셀 파일 업로드 (선택)", type=["xlsx"])
 if uploaded:
     findings = pd.read_excel(uploaded, sheet_name=0)
-    try: standards = pd.read_excel(uploaded, sheet_name=1)
-    except: standards = DEFAULT_STANDARDS
+    try:
+        standards = pd.read_excel(uploaded, sheet_name=1)
+    except:
+        standards = DEFAULT_STANDARDS
 else:
     st.info("⚠️ 업로드하지 않으면 샘플 데이터를 사용합니다.")
     findings, standards = DEFAULT_FINDINGS.copy(), DEFAULT_STANDARDS.copy()
@@ -143,24 +160,35 @@ st.sidebar.header("🔍 검색 조건")
 키워드 = st.sidebar.text_input("내용 검색")
 조항검색 = st.sidebar.text_input("조항 검색 (예: 7 또는 7.1)")
 if st.sidebar.button("검색조건 초기화"):
-    st.experimental_rerun()
+    st.rerun()  # st.experimental_rerun() 대신 최신버전 호환
 btn_search = st.sidebar.button("🔍 검색 실행")
 
 # ----------------- 필터링 -----------------
 df = findings.copy()
 if btn_search or any([조항_sel, 세부조항_sel, 구분_sel, 키워드, 조항검색]):
-    if "조항" in df and 조항_sel: df = df[df["조항"].astype(str).isin(조항_sel)]
-    if "세부조항" in df and 세부조항_sel: df = df[df["세부조항"].astype(str).isin(세부조항_sel)]
-    if "구분" in df and 구분_sel: df = df[df["구분"].astype(str).isin(구분_sel)]
-    if "내용" in df and 키워드: df = df[df["내용"].astype(str).str.contains(키워드, case=False, na=False)]
+    if "조항" in df and 조항_sel:
+        df = df[df["조항"].astype(str).isin(조항_sel)]
+    if "세부조항" in df and 세부조항_sel:
+        df = df[df["세부조항"].astype(str).isin(세부조항_sel)]
+    if "구분" in df and 구분_sel:
+        df = df[df["구분"].astype(str).isin(구분_sel)]
+    if "내용" in df and 키워드:
+        df = df[df["내용"].astype(str).str.contains(키워드, case=False, na=False)]
     if 조항검색:
         mask = pd.Series(False, index=df.index)
-        if "조항" in df: mask |= df["조항"].astype(str).str.contains(조항검색, na=False)
-        if "세부조항" in df: mask |= df["세부조항"].astype(str).str.contains(조항검색, na=False)
+        if "조항" in df:
+            mask |= df["조항"].astype(str).str.contains(조항검색, na=False)
+        if "세부조항" in df:
+            mask |= df["세부조항"].astype(str).str.contains(조항검색, na=False)
         df = df[mask]
 
 st.markdown("### 🔎 검색 결과")
-st.dataframe(df[[c for c in ["조항","세부조항","구분","요구사항","내용"] if c in df.columns]], use_container_width=True, hide_index=True)
+
+# hide_index=True 는 Streamlit 1.32 이상만 지원 → 호환성 위해 제거
+st.dataframe(
+    df[[c for c in ["조항","세부조항","구분","요구사항","내용"] if c in df.columns]],
+    use_container_width=True
+)
 
 # ----------------- 통계 -----------------
 st.markdown("## 📊 통계 분석")
@@ -168,12 +196,14 @@ if not df.empty:
     if "조항" in df:
         st.markdown("#### 1️⃣ 조항별 발생 건수")
         c1 = df["조항"].astype(str).value_counts().reset_index()
-        c1.columns=["조항","건수"]
+        c1.columns = ["조항","건수"]
+        c1["건수"] = c1["건수"].astype(int)
         st.plotly_chart(px.bar(c1, x="조항", y="건수", text="건수", title="조항별 발생 건수"), use_container_width=True)
     if "세부조항" in df:
         st.markdown("#### 2️⃣ 세부조항별 발생 건수")
         c2 = df["세부조항"].astype(str).value_counts().reset_index()
-        c2.columns=["세부조항","건수"]
+        c2.columns = ["세부조항","건수"]
+        c2["건수"] = c2["건수"].astype(int)
         fig2 = px.bar(c2, x="세부조항", y="건수", text="건수", title="세부조항별 발생 건수")
         fig2.update_xaxes(tickangle=60)
         st.plotly_chart(fig2, use_container_width=True)
