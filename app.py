@@ -24,11 +24,13 @@ with tab1:
 ### 부적합 (Nonconformity)이란
 **ISO 정의**  
 > *non-fulfillment of a requirement*  
+
 즉, 어떤 요구사항(requirement) 을 충족하지 못한 상태를 의미합니다.  
 
 ISO 9001 심사 실행 지침 등 ISO Auditing Practices Group 문서에서도 이 정의를 사용하며, 부적합을 문서화할 때는 **“요구사항 위반 → 객관적 증거 → 원인 → 시정 조치 → 재발 방지 계획”** 체계가 필요합니다.  
 
-인증심사 가이드라인인 ISO 19011:2018에서는 “audit findings (심사 결과)” 개념을 다루며, 심사 결과는 기준(criterion) 대비 현실(실제 상태)을 평가한 결과로서, conformity 또는 nonconformity 가 될 수 있다고 규정합니다. 따라서 ISO 체계에서 부적합은 “심사기준(표준, 규정, 내부 문서 등) 중 하나 이상의 요구사항을 충족하지 못한 상태”로 간주됩니다.
+인증심사 가이드라인인 ISO 19011:2018에서는 “audit findings (발견사항, 심사결과)” 개념을 다루며, 심사결과는 기준(criterion) 대비 현실(실제상태)을 평가한 결과로서, conformity 또는 nonconformity 가 될 수 있다고 규정합니다. 
+따라서 ISO 체계에서 부적합은 “심사기준(표준, 규정, 내부 문서 등) 중 하나 이상의 요구사항을 충족하지 못한 상태”로 간주됩니다.
 """)
 
 with tab2:
@@ -36,7 +38,13 @@ with tab2:
 ### 부적합 작성법
 아래는 ISO 9001 Auditing Practices Group(APG) 문서와 ISO/ISO 19011, ISO 17021-1 등에 기반한 부적합 작성 가이드입니다.
 
-**주요 원칙 및 구성요소** APG 문서는 “a well-documented nonconformity”를 위해 다음 세 부분이 반드시 포함되어야 한다고 안내합니다: 심사 증거 (audit evidence) 요구사항 (requirement) 부적합 진술 (statement of nonconformity)
+**주요 원칙 및 구성요소** 
+
+APG 문서는 “a well-documented nonconformity”를 위해 다음 세 부분이 반드시 포함되어야 한다고 안내합니다.
+
+(1) 심사 증거 (audit evidence) 
+(2) 요구사항 (requirement)
+(3) 부적합 진술 (statement of nonconformity)
 
 | 항목 | 설명 | 출처 |
 |------|------|------|
@@ -50,9 +58,12 @@ with tab2:
 with tab3:
     st.markdown("""
 ### 부적합 (Nonconformity) vs 권고사항 / 개선기회 (Recommendation / OFI)의 구별 — "기준과 실제 구분"
+
 부적합과 권고사항(또는 “개선 기회, Observation / OFI”)은 평가 및 관리 시스템 운영 시 자주 혼동되는 개념이므로, 구별 기준을 명확히 두는 것이 중요합니다. 아래 기준들을 중심으로 설명드립니다. 
 
-(1) ISO 관점: 권고사항/개선기회는 정의된 용어가 아님 ISO 9000 / ISO 19011 / ISO 17021 등의 표준에는 “Opportunity for Improvement / Recommendation” 이라는 용어의 공식 정의는 없습니다. 
+(1) ISO 관점
+
+권고사항/개선기회는 정의된 용어가 아님 ISO 9000 / ISO 19011 / ISO 17021 등의 표준에는 “Opportunity for Improvement / Recommendation” 이라는 용어의 공식 정의는 없습니다. 
 
 심사 지침에서는 심사원이 부적합을 지적으로 할 수 없는 경우라도 시스템 개선 가능성 등에 대해 의견을 제시할 수 있음을 인정하지만, 권고사항은 의무 조치 항목은 아니다 라는 점이 강조됩니다. 
 
@@ -63,7 +74,7 @@ ISO 19011:2018 제6.4.10항에서는 “recommendations (권고사항)” 또는
 즉, ISO 체계에서는 권고사항 또는 개선기회는 평가사(심사원)이 제안할 수 있는 개선 아이디어 수준이며, 부적합과는 별도로 취급됩니다. 
 
 
-(2) 실무적/판단 기준으로의 구별 요소*** 
+(2) ***실무적/판단 기준으로의 구별 요소*** 
 
 아래 요소들을 기준으로 “이건 부적합인가, 개선 기회인가”를 구별하는 것이 일반적입니다.
 
@@ -210,3 +221,4 @@ if not df.empty:
     if "구분" in df:
         st.markdown("#### 3️⃣ 권고 / 부적합 비율")
         st.plotly_chart(px.pie(df, names="구분", title="권고/부적합 비율"), use_container_width=True)
+
