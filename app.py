@@ -24,14 +24,10 @@ with tab1:
 ### 부적합 (Nonconformity)이란
 **ISO 정의**  
 > *non-fulfillment of a requirement*  
-
 즉, 어떤 요구사항(requirement) 을 충족하지 못한 상태를 의미합니다.  
 
-ISO 9001 심사 실행 지침 등 ISO Auditing Practices Group 문서에서도 이 정의를 사용하며, 부적합을 문서화할 때는 **“요구사항 위반 → 객관적 증거 → 원인 → 시정 조치 → 재발 방지 계획”** 체계가 필요합니다.  
+ISO 9001 심사 실행 지침 등 ISO Auditing Practices Group 문서에서도 이 정의를 사용하며, 부적합을 문서화할 때는 **“요구사항 위반 → 객관적 증거 → 원인 → 시정 조치(재발 방지 계획)”** 체계가 필요합니다.  
 
-인증심사 가이드라인인 ISO 19011:2018에서는 “audit findings (발견사항, 심사결과)” 개념을 다루며, 심사결과는 기준(criterion) 대비 현실(실제상태)을 평가한 결과로서, conformity 또는 nonconformity 가 될 수 있다고 규정합니다. 
-
-따라서 ISO 체계에서 부적합은 “심사기준(표준, 규정, 내부 문서 등) 중 하나 이상의 요구사항을 충족하지 못한 상태”로 간주됩니다.
 """)
 
 with tab2:
@@ -224,5 +220,6 @@ if not df.empty:
     if "구분" in df:
         st.markdown("#### 3️⃣ 권고 / 부적합 비율")
         st.plotly_chart(px.pie(df, names="구분", title="권고/부적합 비율"), use_container_width=True)
+
 
 
