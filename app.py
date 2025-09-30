@@ -25,7 +25,6 @@ with tab1:
 **ISO 정의**  
 > *non-fulfillment of a requirement*  
 즉, 어떤 요구사항(requirement) 을 충족하지 못한 상태를 의미합니다.  
-
 ISO 9001 심사 실행 지침 등 ISO Auditing Practices Group 문서에서도 이 정의를 사용하며, 부적합을 문서화할 때는 **“요구사항 위반 → 객관적 증거 → 원인 → 시정 조치(재발 방지 계획)”** 체계가 필요합니다.  
 
 """)
@@ -49,9 +48,9 @@ APG 문서는 “a well-documented nonconformity”를 위해 다음 세 부분�
 |------|------|------|
 | **심사 증거** | 객관적 사실·기록 등 구체적 증거 명시 | ISO/APG |
 | **요구사항** | 위반한 기준 조항을 명확히 표기 | ISO 17021-1 |
-| **부적합 진술** | 위반 내용을 간결·명확하게 기술 | ISO/APG |
+| **부적합 진술** | 부적합 내용을 간결·명확하게 기술 | ISO/APG |
 | **시정·원인분석·재발방지** | 시정(Correction), 시정조치(CA), 재발방지 포함 | ISO/APG |
-| **검증 및 종결** | 평가사(심사원)이 조치 유효성 검증 후 종결 | ISO/APG |
+| **검증 및 종결** | 평가사(심사원)가 시정조치 유효성 검증 후 종결 | ISO/APG |
 """)
 
 with tab3:
@@ -220,6 +219,7 @@ if not df.empty:
     if "구분" in df:
         st.markdown("#### 3️⃣ 권고 / 부적합 비율")
         st.plotly_chart(px.pie(df, names="구분", title="권고/부적합 비율"), use_container_width=True)
+
 
 
 
