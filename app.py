@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+from io import BytesIO
 
 # ----------------- 페이지 설정 -----------------
 st.set_page_config(page_title="인정평가 부적합 분석(ISO/IEC 17021-1 기반)", layout="wide")
@@ -27,7 +28,6 @@ with tab1:
 즉, 어떤 요구사항(requirement) 을 충족하지 못한 상태를 의미합니다.  
 
 ISO 9001 심사 실행 지침 등 ISO Auditing Practices Group 문서에서도 이 정의를 사용하며, 부적합을 문서화할 때는 **“요구사항 위반 → 객관적 증거 → 원인 → 시정 조치(재발 방지 계획)”** 체계가 필요합니다.  
-
 """)
 
 with tab2:
@@ -132,8 +132,6 @@ def add_req_text(findings, standards):
     std = standards.copy()
     std[clause_col] = std[clause_col].astype(str)
     f = findings.copy()
-
-    # IndexError 방지 (값이 없을 때 빈 문자열 반환)
     def match_req(row):
         sub = str(row.get("세부조항"))
         main = str(row.get("조항"))
@@ -170,7 +168,7 @@ st.sidebar.header("🔍 검색 조건")
 키워드 = st.sidebar.text_input("내용 검색")
 조항검색 = st.sidebar.text_input("조항 검색 (예: 7 또는 7.1)")
 if st.sidebar.button("검색조건 초기화"):
-    st.rerun()  # st.experimental_rerun() 대신 최신버전 호환
+    st.rerun()
 btn_search = st.sidebar.button("🔍 검색 실행")
 
 # ----------------- 필터링 -----------------
@@ -193,35 +191,58 @@ if btn_search or any([조항_sel, 세부조항_sel, 구분_sel, 키워드, 조�
         df = df[mask]
 
 st.markdown("### 🔎 검색 결과")
-
-# hide_index=True 는 Streamlit 1.32 이상만 지원 → 호환성 위해 제거
 st.dataframe(
     df[[c for c in ["조항","세부조항","구분","요구사항","내용"] if c in df.columns]],
     use_container_width=True
 )
 
-# ----------------- 통계 -----------------
-st.markdown("## 📊 통계 분석")
+# ----------------- 엑셀 다운로드 -----------------
 if not df.empty:
+    buffer = BytesIO()
+    df.to_excel(buffer, index=False)
+    st.download_button(
+        label="📥 현재 검색 결과 엑셀 다운로드",
+        data=buffer.getvalue(),
+        file_name="filtered_findings.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+# ----------------- 통계 및 인사이트 -----------------
+st.markdown("## 📊 통계 분석 및 인사이트")
+if not df.empty:
+    # --- 조항별 건수 ---
     if "조항" in df:
         st.markdown("#### 1️⃣ 조항별 발생 건수")
         c1 = df["조항"].astype(str).value_counts().reset_index()
         c1.columns = ["조항","건수"]
-        c1["건수"] = c1["건수"].astype(int)
         st.plotly_chart(px.bar(c1, x="조항", y="건수", text="건수", title="조항별 발생 건수"), use_container_width=True)
+
+        # TOP5
+        st.markdown("**🔝 TOP 5 많이 발생한 조항**")
+        st.table(c1.head(5))
+
+    # --- 세부조항별 건수 ---
     if "세부조항" in df:
         st.markdown("#### 2️⃣ 세부조항별 발생 건수")
         c2 = df["세부조항"].astype(str).value_counts().reset_index()
         c2.columns = ["세부조항","건수"]
-        c2["건수"] = c2["건수"].astype(int)
         fig2 = px.bar(c2, x="세부조항", y="건수", text="건수", title="세부조항별 발생 건수")
         fig2.update_xaxes(tickangle=60)
         st.plotly_chart(fig2, use_container_width=True)
+
+        st.markdown("**🔝 TOP 5 세부조항**")
+        st.table(c2.head(5))
+
+    # --- 구분 비율 ---
     if "구분" in df:
         st.markdown("#### 3️⃣ 권고 / 부적합 비율")
         st.plotly_chart(px.pie(df, names="구분", title="권고/부적합 비율"), use_container_width=True)
 
-
-
-
-
+    # --- 키워드 간단 분석 ---
+    if "내용" in df:
+        st.markdown("#### 4️⃣ 자주 등장하는 키워드")
+        text_series = df["내용"].dropna().astype(str)
+        words = pd.Series(" ".join(text_series).split())
+        freq = words.value_counts().head(10)
+        st.bar_chart(freq)
+        st.caption("※ 단어 단위 단순 빈도 분석 (형태소 분석 없이 단순 카운트)")
